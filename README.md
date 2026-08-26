@@ -30,8 +30,21 @@ That is it. The service provider is auto-discovered and hooks into Laravel's
 HTTP client globally. **Your existing `Http::get()` and `Http::post()` calls keep
 working unchanged.**
 
+The call behind the screenshot below, with the payload cut short:
+
 ```php
-Http::post('https://api.example.com/orders', ['sku' => 'ABC']);
+Http::describe('This is a example request. And I am the describe text.')
+    ->post('https://webhook.site/…', [
+        'title' => 'Lorem Ipsum Payload',
+        'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+        'author' => [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+        ],
+        // ...
+    ]);
+
+report(new Exception('This exception is for testing reasons'));
 ```
 
 <div align="center">
@@ -47,7 +60,8 @@ Http::post('https://api.example.com/orders', ['sku' => 'ABC']);
 | `HTTP Failure` | `error` | `method`, `url`, `reason` |
 
 `data` and `response` are the decoded body where Laravel can decode it, a
-truncated string otherwise.
+truncated string otherwise. `describe()` is optional, see
+[Labelling a request](#labelling-a-request).
 
 Under the hood this is one Guzzle middleware on `Http::globalMiddleware()` plus
 defaults on `Http::globalOptions()`. Laravel's `Factory` is not replaced, so
