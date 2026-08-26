@@ -1,0 +1,8 @@
+providers:
+  - Muensmedia\SentryHttpContext\SentryHttpContextServiceProvider
+  - Sentry\Laravel\ServiceProvider
+
+env:
+  - APP_NAME="SentryHttpContext"
+  - APP_URL="http://localhost"
+  - APP_ENV=local

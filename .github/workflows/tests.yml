@@ -1,0 +1,68 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pint:
+    name: pint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+
+      - name: Cache composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-8.5-${{ hashFiles('composer.json') }}
+          restore-keys: composer-8.5-
+
+      - name: Install dependencies
+        run: composer update --optimize-autoloader --no-interaction --no-progress
+
+      - name: Check code style
+        run: ./vendor/bin/pint --test
+
+  tests:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4', '8.5']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Cache composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ matrix.php }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-${{ matrix.php }}-
+
+      # There is no committed lock file: this is a library supporting a range
+      # of PHP versions, so every job resolves its own dependency set. PHP 8.2
+      # resolves to Pest 3 and Symfony 7, the rest to Pest 4 and Symfony 8.
+      - name: Install dependencies
+        run: composer update --optimize-autoloader --no-interaction --no-progress
+
+      - name: Run tests
+        run: ./vendor/bin/pest --compact --profile

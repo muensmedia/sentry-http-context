@@ -1,2 +1,17 @@
 vendor
+build
+
+# IDE and local scratch files
 .idea
+.tinker
+
+# Test runner caches
+.phpunit.cache
+.phpunit.result.cache
+
+# This is a library, not an application: the lock file is not part of the
+# contract. Committing it would pin one dependency set (and with it one PHP
+# version - Symfony 8 needs PHP >= 8.4, Pest 4 needs >= 8.3), while the package
+# supports PHP 8.2 through 8.5. CI resolves its own set per PHP version instead,
+# which is what actually proves the supported range.
+composer.lock

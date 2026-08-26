@@ -1,0 +1,51 @@
+include:
+  - project: 'muensmedia-docker/gitlab-ci-recipes'
+    file:
+      - '/package_manager/.composer.yml'
+
+stages:
+  - test
+
+.test-base:
+  stage: test
+  extends:
+    - .composer-install
+  variables:
+    FOLDER_TO_RUN_COMPOSER: './'
+    COMPOSER_FOLDER: './vendor/'
+    COMPOSER_PARAMETERS: '--optimize-autoloader --no-interaction'
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-${PHP_VERSION}
+    paths:
+      - ${COMPOSER_FOLDER}
+  only:
+    - main
+    - merge_requests
+
+pint:
+  extends:
+    - .test-base
+  variables:
+    PHP_VERSION: '8.5'
+  script:
+    - !reference [.composer-install, script]
+    - ./vendor/bin/pint --test
+
+unit tests:
+  extends:
+    - .test-base
+  parallel:
+    matrix:
+      - PHP_VERSION: ['8.2', '8.3', '8.4', '8.5']
+  script:
+    # There is no committed lock file: this is a library supporting a range of
+    # PHP versions, so every job resolves its own dependency set. PHP 8.2 gets
+    # Pest 3 and Symfony 7, the rest get Pest 4 and Symfony 8.
+    - !reference [.composer-install, script]
+    - ./vendor/bin/pest --compact --profile --log-junit build/report.junit.xml
+  artifacts:
+    when: always
+    paths:
+      - build/report.junit.xml
+    reports:
+      junit: build/report.junit.xml
