@@ -1,6 +1,6 @@
 {
   "name": "muensmedia/sentry-http-context",
-  "description": "This package adds more context for Sentry to your HTTP request by adding breadcrumbs.",
+  "description": "Rich Sentry breadcrumbs for Laravel's HTTP client. No call-site changes.",
   "type": "library",
   "require": {
     "php": "^8.2",
@@ -47,5 +47,14 @@
         "Muensmedia\\SentryHttpContext\\SentryHttpContextServiceProvider"
       ]
     }
-  }
+  },
+  "keywords": [
+    "laravel",
+    "sentry",
+    "breadcrumbs",
+    "http-client",
+    "guzzle",
+    "observability",
+    "php"
+  ]
 }
