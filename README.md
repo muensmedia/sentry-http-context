@@ -45,18 +45,52 @@ lands in Sentry as two breadcrumbs:
 `data` and `response` are the decoded body where Laravel can decode it (JSON or
 form-encoded), and a truncated string otherwise.
 
+<img src="./.github/request-breadcrumbs-in-sentry.png" alt="A request and its response in Sentry's breadcrumb trail, with the payload and headers expanded">
+
+Because the breadcrumbs are typed as `http`, Sentry renders the method and URL
+on their own line and makes the rest expandable — the payload and the outgoing
+headers are one click away, right above the exception that made you look.
+
 ## Labelling a request
 
-The breadcrumb message is optional and set per request:
+Every breadcrumb carries an optional message — the line under the category in
+the screenshot above. This package leaves it empty by default, so a request
+shows up as `HTTP Request` and its URL, nothing else:
+
+| Category | Message |
+| --- | --- |
+| `HTTP Request` | — |
+| `HTTP Response` | — |
+
+`describe()` fills that in:
 
 ```php
 Http::describe('Sync customer to CRM')
     ->post('https://api.example.com/customers', $payload);
 ```
 
-`describe()` is a macro on `PendingRequest`, so it chains anywhere in the fluent
-chain. The label travels as a Guzzle request option, not as a header — it never
-leaves your application, and it does not carry over to the next request.
+| Category | Message |
+| --- | --- |
+| `HTTP Request` | Sync customer to CRM |
+| `HTTP Response` | Sync customer to CRM |
+
+Both breadcrumbs of the same call get the same label, so when an exception is
+reported the trail above it reads as a sequence of steps in your own words
+instead of a list of URLs. Worth it wherever the endpoint alone does not say what
+the call was for — a shared gateway, a webhook, a retry.
+
+It is a macro on `PendingRequest`, so it chains anywhere:
+
+```php
+Http::withToken($token)
+    ->describe('Sync customer to CRM')
+    ->timeout(5)
+    ->post($url, $payload);
+```
+
+The label travels as a Guzzle request option rather than a header, so it never
+leaves your application, and it applies to that one request only — the next call
+is unlabelled again unless you say otherwise.
 
 ## Presets
 
@@ -66,34 +100,48 @@ Every pending request gets a set of defaults:
 - `Accept: application/json`
 - `timeout: 60`
 
-These are defaults, not overrides — `Http::withUserAgent()`, `->timeout()` and
-`->replaceHeaders()` win. Note that `->withHeader('User-Agent', …)` *merges*
-rather than replaces (a Laravel quirk of `array_merge_recursive`); use
-`->withUserAgent()` or `->replaceHeaders()` to replace cleanly.
-
+These are defaults, not overrides — whatever you set on the request itself wins.
 Turn the whole set off with `SENTRY_HTTP_CONTEXT_PRESETS=false`.
 
 ### Changing the user agent
 
-Nobody has to live with ours. Three ways, in order of precedence:
+Nobody has to live with ours. If a fixed string is all you need, put it in your
+`.env` and you are done:
 
-```php
-use Muensmedia\SentryHttpContext\SentryHttpContext;
-
-// 1. From any service provider's boot() — resolved per request, so it may read
-//    anything that needs a booted application, and registration order is
-//    irrelevant.
-SentryHttpContext::useUserAgent(fn () => 'Acme/'.config('app.version'));
-
-// 2. A fixed string, in config or via SENTRY_HTTP_CONTEXT_USER_AGENT.
-'user_agent' => 'Acme/1.0',
-
-// 3. Unset — derived from the application:
-//    "MyApp (ENV: production; URL: https://myapp.test)"
+```dotenv
+SENTRY_HTTP_CONTEXT_USER_AGENT="Acme/1.0"
 ```
 
+For anything that has to be computed, call `useUserAgent()` from a service
+provider — `AppServiceProvider` is the usual place:
+
+```php
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Muensmedia\SentryHttpContext\SentryHttpContext;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function boot(): void
+    {
+        SentryHttpContext::useUserAgent(fn () => 'Acme/'.config('app.version'));
+    }
+}
+```
+
+The closure runs per request, not at boot, so it can read config, the current
+environment or anything else that needs a booted application — and it does not
+matter whether your provider boots before or after ours.
+
+The three sources apply in this order:
+
+1. `SentryHttpContext::useUserAgent()`
+2. the `presets.user_agent` config value, or `SENTRY_HTTP_CONTEXT_USER_AGENT`
+3. otherwise derived from the application: `MyApp (ENV: production; URL: https://myapp.test)`
+
 To send no user agent at all and leave Guzzle's own in place, pass `null` to
-`useUserAgent()` or set the config value to `false`. Per request,
+`useUserAgent()` or set the config value to `false`. On a single request,
 `Http::withUserAgent()` still wins over all of it.
 
 ## Configuration
@@ -151,9 +199,37 @@ concurrent pooled requests cannot mix up their labels.
 composer test
 ```
 
-Runs on PHP 8.2 through 8.5. There is no committed lock file — a library should
-not pin one dependency set, so CI resolves its own per PHP version (8.2 gets
-Pest 3 and Symfony 7, the rest Pest 4 and Symfony 8).
+### Against a specific PHP version
+
+The package supports PHP 8.2 – 8.5, and there is no committed lock file — a
+library should not pin one dependency set. Each version therefore resolves its
+own: 8.2 lands on Pest 3 and Symfony 7, the newer ones on Pest 4 and Symfony 8.
+
+The practical consequence is that `vendor/` is not portable between versions. It
+has to be rebuilt whenever you switch, which is what the `rm -rf` below is for:
+
+```bash
+docker run --rm -v "$(pwd)":/var/www/html -w /var/www/html wodby/php:8.2 \
+    sh -c 'rm -rf vendor composer.lock && composer update --no-interaction && vendor/bin/pest'
+```
+
+Swap `8.2` for `8.3`, `8.4` or `8.5`. Since the working directory is mounted,
+this overwrites your local `vendor/` — run the version you develop on last, or
+`composer update` again afterwards.
+
+For a shell to poke around in instead:
+
+```bash
+docker run --rm -it -v "$(pwd)":/var/www/html -w /var/www/html wodby/php:8.2 bash
+```
+
+`composer install` is not an option here. Without a lock file it behaves like
+`update` anyway, and with one left over from another version it fails outright:
+the 8.5 set pulls `symfony/clock`, which requires PHP >= 8.4, so installing that
+lock on 8.3 stops at *"Your lock file does not contain a compatible set of
+packages"*.
+
+The same thing runs in CI, once per version in the matrix, plus `pint --test`.
 
 ## About
 
