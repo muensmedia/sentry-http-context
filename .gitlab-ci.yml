@@ -6,7 +6,7 @@ include:
 stages:
   - test
 
-.test-base:
+.php-base:
   stage: test
   extends:
     - .composer-install
@@ -24,7 +24,7 @@ stages:
 
 pint:
   extends:
-    - .test-base
+    - .php-base
   variables:
     PHP_VERSION: '8.5'
   script:
@@ -33,14 +33,11 @@ pint:
 
 unit tests:
   extends:
-    - .test-base
+    - .php-base
   parallel:
     matrix:
       - PHP_VERSION: ['8.2', '8.3', '8.4', '8.5']
   script:
-    # There is no committed lock file: this is a library supporting a range of
-    # PHP versions, so every job resolves its own dependency set. PHP 8.2 gets
-    # Pest 3 and Symfony 7, the rest get Pest 4 and Symfony 8.
     - !reference [.composer-install, script]
     - ./vendor/bin/pest --compact --profile --log-junit build/report.junit.xml
   artifacts:
