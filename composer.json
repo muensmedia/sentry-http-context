@@ -5,7 +5,7 @@
   "require": {
     "php": "^8.2",
     "illuminate/http": "^11|^12",
-    "spatie/laravel-package-tools": "^1.93.2",
+    "spatie/laravel-package-tools": "^1.16",
     "sentry/sentry-laravel": "^4.27"
   },
   "require-dev": {
