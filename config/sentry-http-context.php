@@ -9,8 +9,8 @@ return [
     |
     | Every outgoing request made through Laravel's HTTP client is recorded as a
     | pair of Sentry breadcrumbs: one for the request, one for the response (or
-    | the connection failure). Bodies are truncated to keep the payload small -
-    | Sentry drops events that grow too large.
+    | the connection failure). Bodies that cannot be decoded are truncated to
+    | keep the payload small - Sentry drops events that grow too large.
     |
     */
 
@@ -36,8 +36,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Defaults applied to every pending request. They are defaults, not
-    | overrides: anything the caller sets explicitly wins. Set `user_agent` to
-    | null to keep Guzzle's own user agent, or to a string to hard-code one.
+    | overrides: anything the caller sets explicitly wins.
     |
     */
 
