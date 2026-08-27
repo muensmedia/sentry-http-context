@@ -1,6 +1,6 @@
 {
   "name": "muensmedia/sentry-http-context",
-  "description": "Rich Sentry breadcrumbs for Laravel's HTTP client. No call-site changes.",
+  "description": "Sentry breadcrumbs for Laravel's HTTP client: method, URL, masked headers, JSON request payload and decoded response body for every outgoing call. No call-site changes.",
   "type": "library",
   "require": {
     "php": "^8.2",
@@ -51,10 +51,18 @@
   "keywords": [
     "laravel",
     "sentry",
+    "sentry-laravel",
     "breadcrumbs",
     "http-client",
     "guzzle",
+    "http-logging",
+    "request-logging",
+    "response-body",
+    "json",
+    "api-debugging",
+    "error-tracking",
     "observability",
+    "debugging",
     "php"
   ]
 }

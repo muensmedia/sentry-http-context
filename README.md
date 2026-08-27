@@ -10,8 +10,21 @@ This repo is **not affiliated with, endorsed by, or maintained by Sentry.**
 
 </div>
 
-Adds full request/response context for every outgoing Laravel HTTP client call to
-your Sentry breadcrumb trail.
+Laravel's HTTP client tells Sentry *that* an outgoing request happened. It does
+not tell you what was in it. This package adds the full request and response
+context to your Sentry breadcrumb trail: HTTP method, URL, headers with
+credentials masked, the JSON request payload you sent and the decoded JSON
+response body you got back, the status code, and the reason a call failed
+outright. Every `Http::get()`, `Http::post()` and every other Laravel HTTP
+client call is covered, including calls made from inside third-party packages.
+
+So when an exception lands in Sentry, the API call that caused it is already
+sitting next to the stack trace — decoded, readable, and in order — instead of
+being a URL you have to reproduce locally. Installation is a `composer require`:
+the service provider is auto-discovered, it registers a single Guzzle
+middleware, and no call site in your application changes. Optionally label a
+call with `Http::describe('Sync customer to CRM')` so its breadcrumbs read as
+your own words rather than a bare URL.
 
 ## Requirements
 
