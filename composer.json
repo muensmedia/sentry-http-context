@@ -4,7 +4,7 @@
   "type": "library",
   "require": {
     "php": "^8.2",
-    "illuminate/http": "^11|^12",
+    "illuminate/http": "^11|^12|^13",
     "spatie/laravel-package-tools": "^1.16",
     "sentry/sentry-laravel": "^4.27"
   },
