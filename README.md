@@ -29,7 +29,7 @@ your own words rather than a bare URL.
 ## Requirements
 
 - PHP 8.2 – 8.5
-- Laravel 11 or 12
+- Laravel 11, 12 or 13
 - [`sentry/sentry-laravel`](https://github.com/getsentry/sentry-laravel) 4.27+,
   already set up in your application
 
