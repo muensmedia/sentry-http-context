@@ -77,6 +77,7 @@ class SentryHttpContextServiceProvider extends PackageServiceProvider
             $headers = array_filter([
                 'User-Agent' => SentryHttpContext::userAgent(),
                 'Accept' => ($config['accept_json'] ?? false) ? 'application/json' : null,
+                'Content-Type' => $config['content_type'],
             ]);
 
             return array_filter([

@@ -60,6 +60,11 @@ return [
 
         'accept_json' => true,
 
+        /*
+         * Set this to null to send no Content-Type header.
+         */
+        'content_type' => 'application/json',
+
         'timeout' => 60,
 
     ],
