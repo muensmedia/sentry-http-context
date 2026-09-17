@@ -91,7 +91,7 @@ it('applies the accept header', function () {
 it('applies the content-type header', function () {
     Http::get('https://example.com');
 
-    Http::assertSent(fn($request) => $request->header('Content-Type') === ['application/json']);
+    Http::assertSent(fn ($request) => $request->header('Content-Type') === ['application/json']);
 });
 
 it('lets the caller override the user agent per request', function () {
