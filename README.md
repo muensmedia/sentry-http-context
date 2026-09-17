@@ -66,11 +66,11 @@ report(new Exception('This exception is for testing reasons'));
 
 </div>
 
-| Category | Level | Metadata |
-| --- | --- | --- |
-| `HTTP Request` | `info` | `method`, `url`, `headers` (credentials masked), `data` |
-| `HTTP Response` | `info`, `warning` from 4xx up | `method`, `url`, `status`, `response` |
-| `HTTP Failure` | `error` | `method`, `url`, `reason` |
+| Category        | Level                         | Metadata                                                |
+|-----------------|-------------------------------|---------------------------------------------------------|
+| `HTTP Request`  | `info`                        | `method`, `url`, `headers` (credentials masked), `data` |
+| `HTTP Response` | `info`, `warning` from 4xx up | `method`, `url`, `status`, `response`                   |
+| `HTTP Failure`  | `error`                       | `method`, `url`, `reason`                               |
 
 `data` and `response` are the decoded body where Laravel can decode it, a
 truncated string otherwise. `describe()` is optional, see
@@ -142,16 +142,17 @@ default. Pass `null` (or set the config to `false`) to send no user agent at all
 php artisan vendor:publish --tag=sentry-http-context-config
 ```
 
-| Key | Default | Env | |
-| --- | --- | --- | --- |
-| `breadcrumbs.enabled` | `true` | `SENTRY_HTTP_CONTEXT_BREADCRUMBS` | record breadcrumbs at all |
-| `breadcrumbs.max_body_length` | `4096` | `SENTRY_HTTP_CONTEXT_MAX_BODY_LENGTH` | hard cap for bodies that cannot be decoded |
-| `breadcrumbs.redacted_headers` | `authorization`, `proxy-authorization`, `cookie`, `x-api-key`, `x-auth-token` | — | masked as `[redacted]`, case-insensitive |
-| `presets.enabled` | `true` | `SENTRY_HTTP_CONTEXT_PRESETS` | apply the defaults above |
-| `presets.user_agent` | `null` | `SENTRY_HTTP_CONTEXT_USER_AGENT` | `null` = derive it, `false` = send none |
-| `presets.accept_json` | `true` | — | send `Accept: application/json` |
-| `presets.timeout` | `60` | — | seconds |
-| `replace_sentry_breadcrumbs` | `true` | — | see below |
+| Key                            | Default                                                                       | Env                                   |                                            |
+|--------------------------------|-------------------------------------------------------------------------------|---------------------------------------|--------------------------------------------|
+| `breadcrumbs.enabled`          | `true`                                                                        | `SENTRY_HTTP_CONTEXT_BREADCRUMBS`     | record breadcrumbs at all                  |
+| `breadcrumbs.max_body_length`  | `4096`                                                                        | `SENTRY_HTTP_CONTEXT_MAX_BODY_LENGTH` | hard cap for bodies that cannot be decoded |
+| `breadcrumbs.redacted_headers` | `authorization`, `proxy-authorization`, `cookie`, `x-api-key`, `x-auth-token` | —                                     | masked as `[redacted]`, case-insensitive   |
+| `presets.enabled`              | `true`                                                                        | `SENTRY_HTTP_CONTEXT_PRESETS`         | apply the defaults above                   |
+| `presets.user_agent`           | `null`                                                                        | `SENTRY_HTTP_CONTEXT_USER_AGENT`      | `null` = derive it, `false` = send none    |
+| `presets.accept_json`          | `true`                                                                        | —                                     | send `Accept: application/json`            |
+| `presets.content_type`         | `application/json`                                                            | —                                     | set default `Content-Type` HTTP-header     |
+| `presets.timeout`              | `60`                                                                          | —                                     | seconds                                    |
+| `replace_sentry_breadcrumbs`   | `true`                                                                        | —                                     | see below                                  | 
 
 Redaction touches the breadcrumb only, never the outgoing request. **Response
 bodies are not redacted.** If an endpoint returns secrets, turn breadcrumbs off

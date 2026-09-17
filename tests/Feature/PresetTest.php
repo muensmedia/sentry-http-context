@@ -88,6 +88,12 @@ it('applies the accept header', function () {
     Http::assertSent(fn ($request) => $request->header('Accept') === ['application/json']);
 });
 
+it('applies the content-type header', function () {
+    Http::get('https://example.com');
+
+    Http::assertSent(fn ($request) => $request->header('Content-Type') === ['application/json']);
+});
+
 it('lets the caller override the user agent per request', function () {
     Http::withUserAgent('Custom/1.0')->get('https://example.com');
 
